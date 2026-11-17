@@ -16,8 +16,8 @@ Chọn workflow vì quy trình claims hiện tại có luật rõ ràng và các
 | --- | ---: | ---: | ---: | --- | ---: | ---: | --- |
 | workflow | 70/70 | 1.000000 | 1.000000 | 1–1 | 0 | 34.285714 | 3.50 / 4 |
 | single | 70/70 | 1.000000 | 1.000000 | 1–1 | 0 | 36.760000 | 5.36 / 6 |
-| orchestrator | 70/70 | 1.000000 | 1.000000 | 1–1 | 0 | 48.037143 | 4.36 / 5 |
-| swarm | 69/70 | 0.985714 | 0.928571 | 0.928571–1 | 0.000816327 | 49.566957 | 2.80 / 3 |
+| orchestrator | 70/70 | 1.000000 | 1.000000 | 1–1 | 0 | 54.465714 | 4.36 / 5 |
+| swarm | 69/70 | 0.985714 | 0.928571 | 0.928571–1 | 0.000816327 | 56.233623 | 2.80 / 3 |
 
 Số liệu lấy từ `src/reports/benchmark.json` đã commit cùng source tại hash trên. Báo cáo crash nằm trong cùng commit. Kiểm thử sau tích hợp: bộ mặc định 117 passed; student matrix 248 passed, trong đó workflow 62/62. Student tests của swarm có trường hợp khẳng định lỗi cố ý phải xuất hiện, nên test xanh không đồng nghĩa benchmark swarm đạt 100%.
 
@@ -40,7 +40,8 @@ Crash suite 20/20 kiểm host/swarm. Độ bền của workflow được kiểm 
 ## Giới hạn
 
 - MockLLM không phải model sản xuất; chi phí là VND mô phỏng, latency `unavailable`. Không kết luận về tốc độ thực hoặc hiệu quả LLM thật.
-- Budget hiện chưa đếm host call đồng nhất: workflow/single tính một tool call cho `issue_refund`, orchestrator/swarm không tính. Bảng trên giữ nguyên kết quả công cụ, không sửa tay JSON. Vì vậy chưa coi chênh lệch cost là phép đo chỉ riêng tác động topology. Việc chưa tính host call đang có lợi về cost cho orchestrator/swarm; dù vậy hai shape này vẫn có cost/success cao hơn workflow trong báo cáo hiện tại. Cần thống nhất quy ước, chạy lại và cập nhật ADR nếu thay code.
+- Budget đã thống nhất giữa các shape: mỗi lần gọi `issue_refund` được đếm là một tool call, ở cả workflow, single, orchestrator và swarm. Trước đó orchestrator và swarm không đếm bước này, nên cost thấp hơn thực tế; số liệu trong bảng đã được chạy lại sau khi sửa. Vẫn là chi phí mô phỏng từ `config/pricing.yaml`, không phải hóa đơn API.
+- Lần sửa budget chỉ thay đổi cost/success của orchestrator và swarm (từ 48,04 và 49,57 lên 54,47 và 56,23). Pass rate, variance và thứ hạng cost không đổi.
 - Steps là số event trace; cách ghi trace khác nhau ảnh hưởng mean/p95, không phải số bước suy luận hay thời gian thực.
 - Public chỉ có 14 claim; swarm có điểm yếu được cài theo seed. Các shape còn khác nhau về prompt, số lần đọc và cách điều phối, nên không quy mọi chênh lệch cho số agent.
 - Chưa có kết quả grader hidden hoặc student_drop self-check. Không tự khai pass rate hidden, leak count hidden hoặc approval bypass count hidden bằng 0.

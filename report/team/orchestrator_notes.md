@@ -38,7 +38,7 @@ Chạy trong `src/`, dùng Python 3.13.2 và môi trường `.venv`:
 | Pass^5 | 1.000000 | 0.928571 |
 | Seed min–max | 1.000000–1.000000 | 0.928571–1.000000 |
 | Seed variance | 0 | 0.000816327 |
-| Cost/success (VND mô phỏng) | 48.037143 | 49.566957 |
+| Cost/success (VND mô phỏng) | 54.465714 | 56.233623 |
 | Mean steps | 4.357143 | 2.800000 |
 | P95 steps | 5 | 3 |
 
