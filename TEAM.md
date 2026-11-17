@@ -25,7 +25,7 @@ Gợi ý chia vai:
 
 | Người | Vai | Commit | Test đã thêm hoặc sửa |
 | --- | --- | --- | --- |
-| | | | |
+| Thành viên 1 | Workflow, crash và idempotency | `5cbc979` | `test_public_matrix.py` (workflow: 62/62); `test_workflow_durability.py` (retry, crash-resume: 2/2); crash suite (20/20) |
 
 ## Cá nhân
 
