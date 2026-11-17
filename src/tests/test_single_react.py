@@ -227,12 +227,12 @@ def test_ticket_never_reaches_prompt_or_trace(public_db, in_tmp, monkeypatch, ca
     assert _ledger(public_db, "C-002")[0] is None
 
 
-# --- research-card ablation (src/ablation/single_trusts_ticket.py) ----------------
+# --- research-card ablation (src/bonus/single_variants.py) ------------------------
 
 
 def test_ablation_changes_one_variable_and_restores_single(tmp_path, in_tmp):
     """Verification off pays C-002 on seed 55 (the swarm's miss); the real single still denies."""
-    from ablation import single_trusts_ticket as ablation
+    from bonus.single_variants import single_trusts_ticket
     from lab8.db import init_store
     from tests.conftest import CLAIMS, WORLD
 
@@ -242,7 +242,7 @@ def test_ablation_changes_one_variable_and_restores_single(tmp_path, in_tmp):
         stores.append(str(tmp_path / name))
 
     real_lock = single._lock_args
-    ablated = ablation.run_claim("C-002", seed=55, store_path=stores[0])
+    ablated = single_trusts_ticket("C-002", seed=55, store_path=stores[0])
     assert single._lock_args is real_lock and single.SHAPE == "single"
     assert ablated.run_id == "R-single_trusts_ticket-C-002-s55"
     assert ablated.status == "resolved" and ablated.refund_effects[0]["amount_vnd"] == 20000
@@ -251,4 +251,4 @@ def test_ablation_changes_one_variable_and_restores_single(tmp_path, in_tmp):
     assert real.status == "denied" and real.proposal_amount == 0
 
     # Other seeds: the ablated check is off only on seed % 5 == 0.
-    assert ablation.run_claim("C-002", seed=11, store_path=stores[0]).status == "denied"
+    assert single_trusts_ticket("C-002", seed=11, store_path=stores[0]).status == "denied"

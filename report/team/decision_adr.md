@@ -23,7 +23,7 @@ Số liệu lấy từ `src/reports/benchmark.json` đã commit cùng source t�
 
 ## Có đáng đổi lấy multi-agent không
 
-Trong setup này, chưa có bằng chứng cần đổi workflow sang multi-agent: orchestrator không tăng pass rate hoặc pass^5, còn swarm sai C-002 seed 55 khi tin ticket thay vì order. Tăng số agent không tự sửa được ranh giới dữ liệu đó. Research card R2 và ablation của thành viên 2 (`src/reports/ablation_single_ticket_trust.json`) tái hiện cùng lỗi trên single khi bỏ bước đối chiếu order, cho thấy lỗi verification có thể xảy ra cả ở một agent.
+Trong setup này, chưa có bằng chứng cần đổi workflow sang multi-agent: orchestrator không tăng pass rate hoặc pass^5, còn swarm sai C-002 seed 55 khi tin ticket thay vì order. Tăng số agent không tự sửa được ranh giới dữ liệu đó. Research card R2 và ablation của thành viên 2 (`src/reports/bonus_benchmark.json`) tái hiện cùng lỗi trên single khi bỏ bước đối chiếu order, cho thấy lỗi verification có thể xảy ra cả ở một agent.
 
 Nhóm sẽ xem xét đổi lựa chọn nếu task có các phần điều tra độc lập cần chạy song song, dữ liệu phi cấu trúc thực sự cần model diễn giải, hoặc benchmark mở rộng/hidden cho thấy workflow không đáp ứng yêu cầu trong khi một shape khác cải thiện độ đúng đáng kể. Điều kiện là cách đo phải được chuẩn hóa, chi phí chấp nhận được, không bypass approval, không lộ dữ liệu và crash vẫn an toàn. Nếu workflow không đạt ngưỡng hidden 0.75, quyết định này phải được đánh giá lại; public 1.0 không thay thế ngưỡng hidden.
 

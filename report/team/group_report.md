@@ -39,7 +39,7 @@ Trace ghi các event `claim_lookup`, `order_lookup`, `quote`, `host_result`. Wor
 
 Orchestrator đọc claim qua `get_claim_view`, xử lý claim không tồn tại hoặc thiếu mã đơn, rồi tạo handoff bằng `make_handoff` với facts rỗng. Investigator chỉ được gọi `lookup_order`, `lookup_policy`, `compute_compensation`, dùng principal của claim để giới hạn quyền xem đơn. Quote do code tính từ order và policy hiện hành; nội dung ticket không quyết định số tiền. Chỉ orchestrator gọi `issue_refund` với quote đầy đủ; host kiểm approval, giới hạn theo đơn và idempotency. `crash_at` được truyền cho host; crash không bị nuốt và connection đóng trong `finally`.
 
-MockLLM chỉ nhận yêu cầu lập kế hoạch cố định và soạn chữ từ status/quote. Handoff được lọc bằng allowlist, không chuyển parent context. Trace ghi handoff đã sanitize, trạng thái visible của order, quote, kết quả host và quyết định cuối; không ghi ticket, claim/order row thô, secret, header hay PII. Mọi nhánh trả bình thường dùng `finish` để ghi trace mới đúng contract. Chi tiết kiểm thử và benchmark sơ bộ của phần này: [orchestrator_notes.md](orchestrator_notes.md).
+MockLLM chỉ nhận yêu cầu lập kế hoạch cố định và soạn chữ từ status/quote. Handoff được lọc bằng allowlist, không chuyển parent context. Trace ghi handoff đã sanitize, trạng thái visible của order, quote, kết quả host và quyết định cuối; không ghi ticket, claim/order row thô, secret, header hay PII. Mọi nhánh trả bình thường dùng `finish` để ghi trace mới đúng contract. Test riêng của phần này nằm ở `src/tests/test_orchestrator_safety.py` (11 trường hợp).
 
 ### Shape B — Single agent (ReAct)
 
@@ -92,16 +92,18 @@ Swarm sai đúng một trial: C-002 seed 55, tin số ngày trễ trong ticket (
 
 Crash safety: `src/reports/crash.json` đạt 20/20.
 
-Tự kiểm trên bộ hidden không nhãn (`student_drop/`, 40 claim × 5 seed, chạy cho workflow, single, orchestrator): mỗi shape 200 trial, không có trial lỗi và không có cờ rò rỉ. Phân bố trạng thái giống nhau ở cả ba shape: 90 `resolved`, 95 `denied`, 10 `escalated`, 5 `needs_info`. Bộ này không có nhãn nên không tính được pass rate. Kết quả nằm ở `src/reports/hidden_selfcheck.json`, lúc viết báo cáo chưa được commit.
+Tự kiểm trên bộ hidden không nhãn (`student_drop/`, 40 claim × 5 seed, chạy cho workflow, single, orchestrator): mỗi shape 200 trial, không có trial lỗi và không có cờ rò rỉ. Phân bố trạng thái giống nhau ở cả ba shape: 90 `resolved`, 95 `denied`, 10 `escalated`, 5 `needs_info`. Bộ này không có nhãn nên không tính được pass rate. Kết quả nằm ở `src/reports/hidden_selfcheck.json`.
 
 Kiểm thử sau tích hợp trên `main`: bộ mặc định 117 passed; ma trận student 248 passed (workflow, single, orchestrator mỗi shape 62/62).
+
+Bonus B2 (gắn nhãn lỗi theo MAST): 5 biến thể hỏng có chủ đích trong `src/bonus/`, mỗi biến thể cài một lỗi. Tagger gắn nhóm MAST cho 162 trial fail, khớp 17/17 nhãn tay. Safety counts cho thấy không biến thể nào bypass approval hay lộ secret, nhưng biến thể dùng clause cũ trả thừa tiền ở 25/70 trial. Chi tiết: `report/team/bonus_report.md`.
 
 Quyết định kiến trúc và lý do: xem `report/team/decision_adr.md`. Phiếu nghiên cứu và ablation: xem `report/team/research_card.md`.
 
 ## 5. Khó khăn và cách xử lý
 
 - **Lọc test theo shape.** `pytest -k single` khớp cả tên hàm `test_public_single_run_cases` của mọi shape, nên ra 242 test thay vì 62. Cách xử lý: khi báo cáo số test của một shape, đếm theo tham số shape trong tên test, không dùng `-k` đơn thuần.
-- **Lỗi swarm không rõ nguyên nhân.** Nhóm cần biết lỗi C-002 seed 55 thuộc nhóm nào. Thành viên 2 làm một ablation một biến: tắt bước đối chiếu ticket với order trên shape single. Lỗi tái hiện đúng trial đó, với cùng lý do `status resolved != denied`. Kết quả: `src/reports/ablation_single_ticket_trust.json` và research card R2.
+- **Lỗi swarm không rõ nguyên nhân.** Nhóm cần biết lỗi C-002 seed 55 thuộc nhóm nào. Thành viên 2 làm một ablation một biến: tắt bước đối chiếu ticket với order trên shape single. Lỗi tái hiện đúng trial đó, với cùng lý do `status resolved != denied`. Kết quả: `src/reports/bonus_benchmark.json` và research card R2.
 - **Chi phí không đồng nhất giữa các shape.** Khi đối chiếu code, workflow và single cộng một tool call cho `issue_refund`, còn orchestrator và swarm thì không. Nhóm đã thống nhất theo cách của workflow và single: orchestrator và swarm cũng đếm bước này, rồi chạy lại toàn bộ benchmark và bằng chứng liên quan.
 - **Repo đổi tên.** GitHub báo repo đã chuyển sang tên `K5-L3B-DAY08-BLG-FromWorkflowsToAgents`. Có một lần `fetch` từ GitHub lỗi kết nối, lần sau chạy được. Tên repo hiện không khớp `SUBMISSION.md` (xem mục 7).
 - **Test ánh xạ sai claim.** Thành viên 3 ghi nhận trong báo cáo cá nhân rằng hai mã claim ban đầu bị gán nhầm tình huống; đã đối chiếu fixture public, sửa mã test và chạy lại.
@@ -110,7 +112,7 @@ Quyết định kiến trúc và lý do: xem `report/team/decision_adr.md`. Phi�
 
 Chi tiết đóng góp nằm trong `TEAM.md` (bảng đóng góp, theo commit và test) và trong báo cáo cá nhân của từng người:
 - Thành viên 1 (Nguyễn Tấn Dũng, 2A202603734): workflow, crash và idempotency; `test_workflow_durability.py`; crash suite 20/20.
-- Thành viên 2 (Lê Thanh Hà, 2A202603901): shape single, `test_single_react.py`, `test_approval_policy_branches.py`, research card và ablation R2.
+- Thành viên 2 (Lê Thanh Hà, 2A202603901): shape single, `test_single_react.py`, `test_approval_policy_branches.py`, research card và ablation R2, bonus B2 (MAST tagger, biến thể hỏng, safety counts).
 - Thành viên 3 (Lê Huy Anh, 2A202603786): orchestrator, `test_orchestrator_safety.py`, benchmark, crash evidence và ADR.
 
 ## 7. Hạn chế và hướng cải thiện
