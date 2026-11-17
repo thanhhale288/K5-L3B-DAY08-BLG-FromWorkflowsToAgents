@@ -18,8 +18,15 @@ ones. `lab8.trace.Trace` does this; your own tracer is fine if it matches.
 
 from __future__ import annotations
 
-from lab8.schemas import RunResult
-from lab8.shapes.common import not_implemented
+from lab8.db import connect
+from lab8.durability import issue_refund
+from lab8.handoff import make_handoff
+from lab8.mock_llm import complete
+from lab8.runtime import run_readonly_investigators
+from lab8.schemas import Budget, RunResult, make_run_id
+from lab8.shapes.common import finish, safe_dump
+from lab8.tools import get_claim_view, tool_cost
+from lab8.trace import Trace
 
 
 def run_claim(
@@ -29,7 +36,57 @@ def run_claim(
     store_path: str,
     crash_at: str | None = None,
 ) -> RunResult:
-    # TODO CP2 (student): thay stub này bằng shape orchestrator theo các bước ở docstring đầu file.
-    # TODO CP3 (student): truyền crash_at vào durability.issue_refund, không bắt InjectedCrash.
-    del store_path, crash_at
-    return not_implemented("orchestrator", claim_id, seed)
+    conn = connect(store_path)
+    budget = Budget()
+    trace = Trace(make_run_id("orchestrator", claim_id, seed))
+
+    def done(status, proposal=0, reason=None):
+        # Draft only from the decision; never forward the raw ticket or parent context.
+        complete(budget, seed=seed, purpose="draft", prompt=f"status={status};proposal={proposal}")
+        trace.add("decision", {"status": status, "proposal_amount": proposal, "reason": reason})
+        return finish(
+            conn, shape="orchestrator", claim_id=claim_id, seed=seed,
+            status=status, proposal_amount=proposal, budget=budget,
+            trace=trace, error_reason=reason,
+        )
+
+    try:
+        budget.add_tool(tool_cost())
+        claim = get_claim_view(conn, claim_id)
+        if not claim["found"]:
+            return done("failed", reason="unknown_claim")
+        if not claim.get("order_id"):
+            return done("needs_info", reason="missing_order_id")
+
+        # The model acknowledges a bounded task. Code defines the worker permissions.
+        complete(budget, seed=seed, purpose="plan", prompt="Investigate owner order and current policy using read-only tools.")
+        handoff = make_handoff(
+            request_id=f"REQ-{claim_id}", claim_id=claim_id,
+            task="check_applicable_policy", facts={},
+            allowed_tools=["lookup_order", "lookup_policy", "compute_compensation"],
+        )
+        trace.add("handoff", safe_dump(handoff))
+        investigated = run_readonly_investigators(
+            conn, budget, handoff, principal_id=claim["principal_id"],
+        )
+        order_view = investigated["tools"].get("lookup_order", {})
+        # Record only the decision about visibility, not identifiers or order fields.
+        trace.add("investigator", {"order_visible": bool(order_view.get("visible"))})
+        if not order_view.get("visible"):
+            return done("escalated", reason=order_view.get("reason"))
+
+        quote = investigated["tools"]["compute_compensation"]
+        proposal = int(quote["amount_vnd"])
+        trace.add("quote", {"amount_vnd": proposal, "reason": quote.get("reason")})
+        if proposal <= 0:
+            return done("denied", reason=quote.get("reason"))
+
+        # Only the parent writes. Pass full entitlement; the host applies approval
+        # and the per-order cap. InjectedCrash deliberately propagates to the runner.
+        outcome = issue_refund(conn, claim_id, proposal, crash_at=crash_at)
+        trace.add("host", {"ok": outcome["ok"], "reason": outcome["reason"]})
+        if not outcome["ok"]:
+            return done("failed" if outcome["conflict"] else "denied", proposal, outcome["reason"])
+        return done("resolved", proposal)
+    finally:
+        conn.close()
