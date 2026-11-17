@@ -43,7 +43,7 @@ Sao chép mục dưới đây cho từng thành viên.
 
 ### Phần việc phụ trách
 
-- Shape A `workflow`, kiểm thử retry/crash-resume, crash suite, cập nhật bảng đóng góp và phần Crash & Durability trong báo cáo nhóm.
+- Shape A `workflow`, kiểm thử retry/crash-resume, crash suite và cập nhật bảng đóng góp.
 
 ### Đóng góp cụ thể
 
@@ -57,8 +57,8 @@ Sao chép mục dưới đây cho từng thành viên.
 - Ma trận student workflow: 62/62.
 - Test workflow retry và crash-resume: 2/2; run IDs được kiểm tra: `R-workflow-C-011-s11`, `R-workflow-C-012-s11`.
 - Crash suite sinh `src/reports/crash.json`: 20/20.
-- Bộ test mặc định tại thời điểm kiểm tra: 67 passed.
-- T11/T12 trên workflow và orchestrator đạt; single chưa triển khai ở thời điểm kiểm tra nên hai ca tương ứng chưa đạt cho toàn bộ ba shape.
+- Bộ test mặc định tại thời điểm kiểm tra: 117 passed.
+- Ma trận student hiện tại: 248 passed; T11/T12 đạt trên các shape workflow, single và orchestrator.
 
 ### Công cụ AI đã dùng
 
@@ -66,4 +66,4 @@ Sao chép mục dưới đây cho từng thành viên.
 
 ### Tự đánh giá
 
-- Phần workflow và crash/durability đã có kiểm thử công khai và bằng chứng 20/20. Chưa thể xác nhận yêu cầu T11/T12 trên cả ba shape cho tới khi single được triển khai và kiểm tra lại.
+- Phần workflow và crash/durability đã có kiểm thử công khai; sau khi tích hợp single, cả ba shape đều đạt T11/T12 và crash suite đạt 20/20.
