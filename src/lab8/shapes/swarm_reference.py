@@ -135,6 +135,8 @@ def _run(conn: sqlite3.Connection, claim_id: str, *, seed: int, crash_at: str | 
         )
 
     try:
+        # Counted as one tool call, same as the other shapes, so cost is comparable.
+        budget.add_tool(tool_cost())
         outcome = issue_refund(conn, claim_id, proposal, crash_at=crash_at)
     except InjectedCrash:
         trace.add("crash", {"at": crash_at})

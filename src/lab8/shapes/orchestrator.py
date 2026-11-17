@@ -83,6 +83,8 @@ def run_claim(
 
         # Only the parent writes. Pass full entitlement; the host applies approval
         # and the per-order cap. InjectedCrash deliberately propagates to the runner.
+        # Counted as one tool call, same as workflow and single, so cost is comparable.
+        budget.add_tool(tool_cost())
         outcome = issue_refund(conn, claim_id, proposal, crash_at=crash_at)
         trace.add("host", {"ok": outcome["ok"], "reason": outcome["reason"]})
         if not outcome["ok"]:

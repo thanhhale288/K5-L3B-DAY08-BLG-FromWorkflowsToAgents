@@ -1,7 +1,7 @@
 # Decision record
 
 - Shape chọn: workflow
-- Commit hash: 10db8629fd42dfb5c627e48098996c848ff17d0a
+- Commit hash: b3e7b7769562d84f12baecd27153c1486acb6114
 - Run id dẫn chứng: R-workflow-C-001-s11; R-workflow-C-002-s55; R-workflow-C-014-s11 (src/reports/benchmark.json)
 - Pass rate / pass^5 / seed min-max / variance: 1.000000 / 1.000000 / 1.000000–1.000000 / 0.000000 (70/70 trial public, 14 claim × 5 seed)
 - Cost per success (mô phỏng, VND): 34.285714 (cách tính budget hiện tại; xem giới hạn bên dưới)
@@ -16,14 +16,14 @@ Chọn workflow vì quy trình claims hiện tại có luật rõ ràng và các
 | --- | ---: | ---: | ---: | --- | ---: | ---: | --- |
 | workflow | 70/70 | 1.000000 | 1.000000 | 1–1 | 0 | 34.285714 | 3.50 / 4 |
 | single | 70/70 | 1.000000 | 1.000000 | 1–1 | 0 | 36.760000 | 5.36 / 6 |
-| orchestrator | 70/70 | 1.000000 | 1.000000 | 1–1 | 0 | 48.037143 | 4.36 / 5 |
-| swarm | 69/70 | 0.985714 | 0.928571 | 0.928571–1 | 0.000816327 | 49.566957 | 2.80 / 3 |
+| orchestrator | 70/70 | 1.000000 | 1.000000 | 1–1 | 0 | 54.465714 | 4.36 / 5 |
+| swarm | 69/70 | 0.985714 | 0.928571 | 0.928571–1 | 0.000816327 | 56.233623 | 2.80 / 3 |
 
 Số liệu lấy từ `src/reports/benchmark.json` đã commit cùng source tại hash trên. Báo cáo crash nằm trong cùng commit. Kiểm thử sau tích hợp: bộ mặc định 117 passed; student matrix 248 passed, trong đó workflow 62/62. Student tests của swarm có trường hợp khẳng định lỗi cố ý phải xuất hiện, nên test xanh không đồng nghĩa benchmark swarm đạt 100%.
 
 ## Có đáng đổi lấy multi-agent không
 
-Trong setup này, chưa có bằng chứng cần đổi workflow sang multi-agent: orchestrator không tăng pass rate hoặc pass^5, còn swarm sai C-002 seed 55 khi tin ticket thay vì order. Tăng số agent không tự sửa được ranh giới dữ liệu đó. Research card R2 và ablation của thành viên 2 (`src/reports/ablation_single_ticket_trust.json`) tái hiện cùng lỗi trên single khi bỏ bước đối chiếu order, cho thấy lỗi verification có thể xảy ra cả ở một agent.
+Trong setup này, chưa có bằng chứng cần đổi workflow sang multi-agent: orchestrator không tăng pass rate hoặc pass^5, còn swarm sai C-002 seed 55 khi tin ticket thay vì order. Tăng số agent không tự sửa được ranh giới dữ liệu đó. Research card R2 và ablation của thành viên 2 (`src/reports/bonus_benchmark.json`) tái hiện cùng lỗi trên single khi bỏ bước đối chiếu order, cho thấy lỗi verification có thể xảy ra cả ở một agent.
 
 Nhóm sẽ xem xét đổi lựa chọn nếu task có các phần điều tra độc lập cần chạy song song, dữ liệu phi cấu trúc thực sự cần model diễn giải, hoặc benchmark mở rộng/hidden cho thấy workflow không đáp ứng yêu cầu trong khi một shape khác cải thiện độ đúng đáng kể. Điều kiện là cách đo phải được chuẩn hóa, chi phí chấp nhận được, không bypass approval, không lộ dữ liệu và crash vẫn an toàn. Nếu workflow không đạt ngưỡng hidden 0.75, quyết định này phải được đánh giá lại; public 1.0 không thay thế ngưỡng hidden.
 
@@ -40,7 +40,8 @@ Crash suite 20/20 kiểm host/swarm. Độ bền của workflow được kiểm 
 ## Giới hạn
 
 - MockLLM không phải model sản xuất; chi phí là VND mô phỏng, latency `unavailable`. Không kết luận về tốc độ thực hoặc hiệu quả LLM thật.
-- Budget hiện chưa đếm host call đồng nhất: workflow/single tính một tool call cho `issue_refund`, orchestrator/swarm không tính. Bảng trên giữ nguyên kết quả công cụ, không sửa tay JSON. Vì vậy chưa coi chênh lệch cost là phép đo chỉ riêng tác động topology. Việc chưa tính host call đang có lợi về cost cho orchestrator/swarm; dù vậy hai shape này vẫn có cost/success cao hơn workflow trong báo cáo hiện tại. Cần thống nhất quy ước, chạy lại và cập nhật ADR nếu thay code.
+- Budget đã thống nhất giữa các shape: mỗi lần gọi `issue_refund` được đếm là một tool call, ở cả workflow, single, orchestrator và swarm. Trước đó orchestrator và swarm không đếm bước này, nên cost thấp hơn thực tế; số liệu trong bảng đã được chạy lại sau khi sửa. Vẫn là chi phí mô phỏng từ `config/pricing.yaml`, không phải hóa đơn API.
+- Lần sửa budget chỉ thay đổi cost/success của orchestrator và swarm (từ 48,04 và 49,57 lên 54,47 và 56,23). Pass rate, variance và thứ hạng cost không đổi.
 - Steps là số event trace; cách ghi trace khác nhau ảnh hưởng mean/p95, không phải số bước suy luận hay thời gian thực.
 - Public chỉ có 14 claim; swarm có điểm yếu được cài theo seed. Các shape còn khác nhau về prompt, số lần đọc và cách điều phối, nên không quy mọi chênh lệch cho số agent.
 - Chưa có kết quả grader hidden hoặc student_drop self-check. Không tự khai pass rate hidden, leak count hidden hoặc approval bypass count hidden bằng 0.
