@@ -5,7 +5,7 @@
 - Tên nhóm: BLG
 - Lớp: L3A
 - Repo nhóm: `K5-L3B-DAY08-BLG-FromWorkflowsToAgents` (xem [SUBMISSION.md](SUBMISSION.md))
-- URL repo, nhánh nộp, commit chốt: https://github.com/thanhhale288/K5-L3B-DAY08-BLG-FromWorkflowsToAgents, nhánh `main`, commit chốt `10db862`
+- URL repo, nhánh nộp, commit chốt: https://github.com/thanhhale288/K5-L3B-DAY08-BLG-FromWorkflowsToAgents, nhánh `main`, commit chốt `1869bd0`
 
 ## Thành viên
 

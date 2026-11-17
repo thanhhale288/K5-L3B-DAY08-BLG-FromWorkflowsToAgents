@@ -6,7 +6,7 @@ Tối đa 5 trang ngoài phụ lục. Số liệu lấy từ file trong `src/rep
 
 - Tên nhóm: nhóm BLG
 - Thành viên: xem `TEAM.md`
-- Commit chốt (trùng `report/team/decision_adr.md`): `10db862`
+- Commit chốt (trùng `report/team/decision_adr.md`): `1869bd0`
 
 ## 2. Mục tiêu và cách tiếp cận
 
